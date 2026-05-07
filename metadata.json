@@ -1,0 +1,6 @@
+{
+  "name": "GrammarGlow - Offline AI English Learning",
+  "description": "An offline-first PWA for Bangladeshi students to practice English using Gemma AI. Features grammar ladders, speaking, listening, and reading exercises.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["offline", "ai-native"]
+}
