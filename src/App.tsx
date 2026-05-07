@@ -104,7 +104,7 @@ export default function App() {
                     <div className="w-px h-3 bg-white/20" />
                     <div className="flex items-center gap-2 text-blue-400 font-bold text-xs">
                         <ShieldCheck size={14} />
-                        <span>GEMMA 4 (OFFLINE)</span>
+                        <span>GEMMA 2 (OFFLINE)</span>
                     </div>
                 </motion.div>
             </div>
