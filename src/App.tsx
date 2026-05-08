@@ -17,13 +17,16 @@ export default function App() {
   const [state, setState] = useState<AppState>('setup');
   const [progress, setProgress] = useState<UserProgress>({
     completedSubTopics: [],
-    totalPoints: 0
+    totalPoints: 0,
+    readingSetIndex: 0,
+    writingSetIndex: 0
   });
   const [selectedExercise, setSelectedExercise] = useState<{
     type: ExerciseType;
     topicId?: string;
     subTopicId?: string;
     questionCount?: number;
+    setIndex?: number;
   } | null>(null);
 
   // Persistence logic for offline use
@@ -39,6 +42,8 @@ export default function App() {
           setProgress({
             completedSubTopics: [],
             totalPoints: 0,
+            readingSetIndex: 0,
+            writingSetIndex: 0,
             ...parsed
           });
         } catch (e) {
@@ -54,17 +59,29 @@ export default function App() {
   };
 
   const handleStartExercise = (type: ExerciseType, topicId?: string, subTopicId?: string, questionCount?: number) => {
-    setSelectedExercise({ type, topicId, subTopicId, questionCount });
+    let setIndex = 0;
+    if (type === ExerciseType.READING) setIndex = progress.readingSetIndex || 0;
+    if (type === ExerciseType.WRITING) setIndex = progress.writingSetIndex || 0;
+
+    setSelectedExercise({ type, topicId, subTopicId, questionCount, setIndex });
     setState('exercise');
   };
 
   const handleExerciseComplete = (passed: boolean) => {
-    if (passed && selectedExercise?.subTopicId) {
-      const newProgress = {
-        ...progress,
-        completedSubTopics: Array.from(new Set([...(progress.completedSubTopics || []), selectedExercise.subTopicId])),
-        totalPoints: (progress.totalPoints || 0) + (selectedExercise.type === ExerciseType.GRAMMAR_LADDER ? 100 : 20)
-      };
+    if (passed) {
+      const newProgress = { ...progress };
+      
+      if (selectedExercise?.subTopicId) {
+        newProgress.completedSubTopics = Array.from(new Set([...(progress.completedSubTopics || []), selectedExercise.subTopicId]));
+        newProgress.totalPoints = (progress.totalPoints || 0) + 100;
+      } else if (selectedExercise?.type === ExerciseType.READING) {
+        newProgress.readingSetIndex = (progress.readingSetIndex || 0) + 1;
+        newProgress.totalPoints = (progress.totalPoints || 0) + 50;
+      } else if (selectedExercise?.type === ExerciseType.WRITING) {
+        newProgress.writingSetIndex = (progress.writingSetIndex || 0) + 1;
+        newProgress.totalPoints = (progress.totalPoints || 0) + 50;
+      }
+      
       saveProgress(newProgress);
     }
     setState('dashboard');

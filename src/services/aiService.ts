@@ -29,21 +29,110 @@ export class AIService {
     localStorage.setItem('grammarglow_model_ready', 'true');
   }
 
-  async generateExercise(type: ExerciseType, topicId?: string, subTopicId?: string): Promise<Exercise> {
+  async generateExercise(type: ExerciseType, topicId?: string, subTopicId?: string, setIndex: number = 0): Promise<Exercise> {
     if (!this.isModelLoaded) throw new Error("Local AI Engine not ready.");
 
     await new Promise(resolve => setTimeout(resolve, 800));
 
-    const seed = Math.floor(Math.random() * 100000);
+    const seed = Math.floor(Math.random() * 100000) + setIndex;
     const pick = <T>(arr: T[]): T => arr[seed % arr.length];
     
     // Core data pools
     const people = ["Rahim", "Karim", "Salma", "Fatema", "The student", "A farmer", "My friend", "The teacher", "A sailor", "An artist", "The driver", "Our neighbor"];
     const foods = ["apple", "egg", "banana", "mango", "orange", "ice cream", "sandwich", "umbrella", "university", "hour", "honest man", "one-eyed man"];
     const objects = ["book", "pen", "rickshaw", "laptop", "ball", "cat", "dog", "house", "car", "mobile"];
-    const places = ["Dhaka", "Chittagong", "Sylhet", "the library", "the hospital", "the school", "the market"];
 
     const generateOfflineExercise = (): Partial<Exercise> => {
+        // --- READING SECTION: 30 Questions Batch ---
+        if (type === ExerciseType.READING) {
+            const difficulties = ["Easy", "Moderate", "Challenging", "Advanced", "Professional"];
+            const diff = difficulties[Math.min(Math.floor(setIndex / 10), 4)];
+            
+            const passages = [
+                "A busy morning in Dhaka city.",
+                "The lives of people living by the river Padma.",
+                "The importance of learning a second language.",
+                "An innovative technology that cleans oceans.",
+                "The history of tea cultivation in Sylhet."
+            ];
+            
+            const passage = passages[setIndex % passages.length] + " (Difficulty: " + diff + ")";
+            
+            const batchQuestions: Exercise[] = [];
+            
+            // 10 MCQs
+            for(let i=0; i<10; i++) {
+                batchQuestions.push({
+                    id: `reading-mcq-${setIndex}-${i}`,
+                    type,
+                    title: `Reading MCQ ${i+1}`,
+                    titleBn: `বহুনির্বাচনী প্রশ্ন ${i+1}`,
+                    content: `Based on the passage, find the correct statement for Part ${i+1}.`,
+                    options: ["True Insight", "False Claim", "Irrelevant Data", "Opposite View"],
+                    correctAnswer: "True Insight",
+                    explanation: "Explicitly mentioned in paragraph " + (i % 3 + 1),
+                    explanationBn: "অনুচ্ছেদ " + (i % 3 + 1) + " এ উল্লেখ আছে।"
+                });
+            }
+
+            // 10 Fill in the blanks
+            for(let i=0; i<10; i++) {
+                batchQuestions.push({
+                    id: `reading-gap-${setIndex}-${i}`,
+                    type,
+                    title: `Fill in the Gaps ${i+1}`,
+                    titleBn: `শূন্যস্থান পূরণ ${i+1}`,
+                    content: `The author suggests that ___ is vital for the community.`,
+                    correctAnswer: "Hard work",
+                    explanation: "Contextual clue from middle section.",
+                    explanationBn: "মধ্যভাগের প্রাসঙ্গিক ক্লু থেকে প্রাপ্ত।"
+                });
+            }
+
+            // 10 True/False
+            for(let i=0; i<10; i++) {
+                batchQuestions.push({
+                    id: `reading-tf-${setIndex}-${i}`,
+                    type,
+                    title: `True or False ${i+1}`,
+                    titleBn: `সত্য অথবা মিথ্যা ${i+1}`,
+                    content: `Statement ${i+1}: The main event happened in the evening.`,
+                    options: ["True", "False"],
+                    correctAnswer: i % 2 === 0 ? "True" : "False",
+                    explanation: "Check the timeline in chapter " + i,
+                    explanationBn: "অধ্যায় " + i + " এর সময়রেখা দেখুন।"
+                });
+            }
+
+            return {
+                title: `Reading Set ${setIndex + 1}`,
+                titleBn: `পঠন সেট ${setIndex + 1}`,
+                passage,
+                content: "Complete the following 30 questions based on the text.",
+                batchQuestions
+            };
+        }
+
+        // --- WRITING SECTION: Prompt + Analysis Flow ---
+        if (type === ExerciseType.WRITING) {
+            const topics = [
+                "Describe your favorite holiday memory.",
+                "How can technology improve education in villages?",
+                "The role of newspapers in daily life.",
+                "Climate change: Causes and solutions.",
+                "Your future career goals.",
+                "Importance of honesty."
+            ];
+            const topic = topics[setIndex % topics.length];
+
+            return {
+                title: `Writing Set ${setIndex + 1}`,
+                titleBn: `লিখন সেট ${setIndex + 1}`,
+                content: topic,
+                isWritten: true
+            };
+        }
+
         // --- GRAMMAR LADDER: CURRICULUM SPECIFIC ---
         if (type === ExerciseType.GRAMMAR_LADDER) {
             // Sector 1: Building Blocks (Parts of Speech)
@@ -89,6 +178,7 @@ export class AIService {
                     };
                 }
                 if (subTopicId === "articles") {
+                    const foods = ["apple", "egg", "banana", "mango", "orange", "ice cream", "sandwich", "umbrella", "university", "hour", "honest man", "one-eyed man"];
                     const word = pick(foods);
                     const startsWithVowel = /^[aeiou]/i.test(word);
                     let correctArt = startsWithVowel ? "an" : "a";
@@ -150,20 +240,6 @@ export class AIService {
             };
         }
 
-        // Keep other exercise types as they were but adjusted for brevity
-        if (type === ExerciseType.READING) {
-            return {
-                title: "Reading Passage",
-                titleBn: "পঠন অনুচ্ছেদ",
-                passage: "A short story about a brave sailor.",
-                content: "Who is the story about?",
-                options: ["A sailor", "A teacher", "A doctor", "A pilot"],
-                correctAnswer: "A sailor",
-                explanation: "Directly stated in the text.",
-                explanationBn: "টেক্সটে সরাসরি বলা আছে।"
-            };
-        }
-
         return {
             title: "General Exercise",
             titleBn: "সাধারণ অনুশীলন",
@@ -177,7 +253,7 @@ export class AIService {
 
     const res = generateOfflineExercise();
 
-    return {
+    const finalExercise: Exercise = {
       id: `gemma-v4-${topicId || 'gen'}-${subTopicId || 'gen'}-${seed}`,
       type,
       topicId,
@@ -191,8 +267,30 @@ export class AIService {
       explanation: res.explanation!,
       explanationBn: res.explanationBn!,
       isWritten: res.isWritten,
-      vocabulary: res.vocabulary
+      vocabulary: res.vocabulary,
+      batchQuestions: res.batchQuestions
     };
+
+    // If writing, generate 5-10 practice questions as followup
+    if (type === ExerciseType.WRITING) {
+        const practiceCount = 5 + (seed % 6);
+        finalExercise.practiceQuestions = [];
+        for(let i=0; i<practiceCount; i++) {
+            finalExercise.practiceQuestions.push({
+                id: `writing-practice-${seed}-${i}`,
+                type: ExerciseType.GRAMMAR_LADDER,
+                title: "Style & Grammar Practice",
+                titleBn: "শৈলী এবং ব্যাকরণ অনুশীলন",
+                content: `Which version is more formal for a professional response?`,
+                options: ["Option A (Formal)", "Option B (Informal)", "Option C (Slang)", "Option D (Incorrect)"],
+                correctAnswer: "Option A (Formal)",
+                explanation: "Formal language is required for academic or professional writing.",
+                explanationBn: "একাডেমিক বা পেশাদার লেখার জন্য আনুষ্ঠানিক ভাষা প্রয়োজন।"
+            });
+        }
+    }
+
+    return finalExercise;
   }
 
   async getFeedback(userInput: string, targetAnswer: string): Promise<{ isCorrect: boolean; feedback: string; feedbackBn: string }> {

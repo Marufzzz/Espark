@@ -20,25 +20,28 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStartExercise, progress 
   const totalPoints = progress.totalPoints || 0;
   const rank = totalPoints > 1000 ? "Master" : totalPoints > 500 ? "Explorer" : "Scholar";
 
+  const readingProgress = progress.readingSetIndex || 0;
+  const writingProgress = progress.writingSetIndex || 0;
+
   const isSubTopicUnlocked = (subTopicId: string, topicId: string) => {
-      const topic = GRAMMAR_CURRICULUM.find(t => t.id === topicId);
-      if (!topic) return false;
-      const index = topic.subTopics.findIndex(s => s.id === subTopicId);
-      
-      const completedSubTopics = progress.completedSubTopics || [];
-      if (topicId === GRAMMAR_CURRICULUM[0].id && index === 0) return true;
-      if (completedSubTopics.includes(subTopicId)) return true;
-      if (index > 0 && completedSubTopics.includes(topic.subTopics[index-1].id)) return true;
-      
-      if (index === 0) {
-          const tIndex = GRAMMAR_CURRICULUM.findIndex(t => t.id === topicId);
-          if (tIndex > 0) {
-              const prevTopic = GRAMMAR_CURRICULUM[tIndex - 1];
-              const lastSub = prevTopic.subTopics[prevTopic.subTopics.length - 1];
-              return completedSubTopics.includes(lastSub.id);
-          }
-      }
-      return false;
+    const topic = GRAMMAR_CURRICULUM.find(t => t.id === topicId);
+    if (!topic) return false;
+    const index = topic.subTopics.findIndex(s => s.id === subTopicId);
+    
+    const completedSubTopics = progress.completedSubTopics || [];
+    if (topicId === GRAMMAR_CURRICULUM[0].id && index === 0) return true;
+    if (completedSubTopics.includes(subTopicId)) return true;
+    if (index > 0 && completedSubTopics.includes(topic.subTopics[index-1].id)) return true;
+    
+    if (index === 0) {
+        const tIndex = GRAMMAR_CURRICULUM.findIndex(t => t.id === topicId);
+        if (tIndex > 0) {
+            const prevTopic = GRAMMAR_CURRICULUM[tIndex - 1];
+            const lastSub = prevTopic.subTopics[prevTopic.subTopics.length - 1];
+            return completedSubTopics.includes(lastSub.id);
+        }
+    }
+    return false;
   };
 
   return (
@@ -73,25 +76,46 @@ export const Dashboard: React.FC<DashboardProps> = ({ onStartExercise, progress 
         </div>
       </header>
 
-      <section className="grid grid-cols-3 gap-4">
-        {tools.map((tool, index) => (
+      <section className="grid grid-cols-2 gap-6">
           <motion.button
-            key={tool.id}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: index * 0.1 }}
-            onClick={() => onStartExercise(tool.id)}
-            className="flex flex-col items-center gap-4 p-6 bg-white rounded-[40px] shadow-sm border border-slate-100 hover:shadow-xl hover:shadow-slate-200/50 transition-all group"
+            whileHover={{ y: -5 }}
+            onClick={() => onStartExercise(ExerciseType.READING)}
+            className="p-8 bg-blue-600 text-white rounded-[40px] shadow-xl shadow-blue-200 text-left relative overflow-hidden group"
           >
-            <div className={`w-16 h-16 rounded-3xl ${tool.color} text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
-              <tool.icon size={32} />
-            </div>
-            <div className="text-center">
-              <span className="block font-black text-slate-800 uppercase tracking-tighter text-sm">{tool.label}</span>
-              <span className="block bangla-text text-slate-400 text-xs font-bold">{tool.labelBn}</span>
-            </div>
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-4">
+                    <BookOpen size={32} />
+                    <span className="px-3 py-1 bg-white/20 rounded-full text-[10px] font-black uppercase">Set {readingProgress + 1}/50</span>
+                </div>
+                <h4 className="text-2xl font-black uppercase leading-tight mb-1">Reading Lab</h4>
+                <p className="bangla-text opacity-80 font-medium">পড়ার দক্ষতা বাড়ান</p>
+                
+                <div className="mt-8 h-1.5 w-full bg-white/20 rounded-full">
+                    <div className="h-full bg-white rounded-full transition-all duration-1000" style={{ width: `${(readingProgress / 50) * 100}%` }} />
+                </div>
+              </div>
+              <div className="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700" />
           </motion.button>
-        ))}
+
+          <motion.button
+            whileHover={{ y: -5 }}
+            onClick={() => onStartExercise(ExerciseType.WRITING)}
+            className="p-8 bg-orange-500 text-white rounded-[40px] shadow-xl shadow-orange-200 text-left relative overflow-hidden group"
+          >
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-4">
+                    <PenTool size={32} />
+                    <span className="px-3 py-1 bg-white/20 rounded-full text-[10px] font-black uppercase">Set {writingProgress + 1}/50</span>
+                </div>
+                <h4 className="text-2xl font-black uppercase leading-tight mb-1">Writing Studio</h4>
+                <p className="bangla-text opacity-80 font-medium">লেখার দক্ষতা বৃদ্ধি করুন</p>
+
+                <div className="mt-8 h-1.5 w-full bg-white/20 rounded-full">
+                    <div className="h-full bg-white rounded-full transition-all duration-1000" style={{ width: `${(writingProgress / 50) * 100}%` }} />
+                </div>
+              </div>
+              <div className="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700" />
+          </motion.button>
       </section>
 
       <section className="space-y-8">

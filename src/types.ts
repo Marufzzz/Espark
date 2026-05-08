@@ -18,6 +18,8 @@ export interface GrammarTopic {
 export interface UserProgress {
   completedSubTopics: string[]; // List of IDs
   totalPoints: number;
+  readingSetIndex: number; 
+  writingSetIndex: number;
 }
 
 export interface SessionStats {
@@ -57,6 +59,8 @@ export interface Exercise {
   explanationBn: string;
   isWritten?: boolean;
   vocabulary?: VocabularyWord[]; 
+  batchQuestions?: Exercise[]; // For 30 questions in reading
+  practiceQuestions?: Exercise[]; // For 5-10 questions in writing followup
 }
 
 export interface ModelStatus {
