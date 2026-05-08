@@ -1,16 +1,29 @@
 
+export interface GrammarSubTopic {
+  id: string;
+  topicId: string;
+  title: string;
+  titleBn: string;
+  questionCount: number;
+  isFinal?: boolean;
+}
+
+export interface GrammarTopic {
+  id: string;
+  title: string;
+  titleBn: string;
+  subTopics: GrammarSubTopic[];
+}
+
 export interface UserProgress {
-  level: number; 
-  completedExercises: string[];
-  totalCorrect: number;
-  totalAttempted: number;
-  lastActive: string;
+  completedSubTopics: string[]; // List of IDs
+  totalPoints: number;
 }
 
 export interface SessionStats {
   correct: number;
   total: number;
-  targetCount: number; // e.g., 10 questions per session
+  targetCount: number; 
 }
 
 export enum ExerciseType {
@@ -32,6 +45,8 @@ export interface VocabularyWord {
 export interface Exercise {
   id: string;
   type: ExerciseType;
+  topicId?: string;
+  subTopicId?: string;
   title: string;
   titleBn: string;
   passage?: string; 
@@ -41,7 +56,7 @@ export interface Exercise {
   explanation: string;
   explanationBn: string;
   isWritten?: boolean;
-  vocabulary?: VocabularyWord[]; // New: For Vocabulary Builder
+  vocabulary?: VocabularyWord[]; 
 }
 
 export interface ModelStatus {

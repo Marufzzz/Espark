@@ -16,13 +16,15 @@ type AppState = 'setup' | 'dashboard' | 'exercise';
 export default function App() {
   const [state, setState] = useState<AppState>('setup');
   const [progress, setProgress] = useState<UserProgress>({
-    level: 1,
-    completedExercises: [],
-    totalCorrect: 0,
-    totalAttempted: 0,
-    lastActive: new Date().toISOString()
+    completedSubTopics: [],
+    totalPoints: 0
   });
-  const [selectedType, setSelectedType] = useState<ExerciseType | null>(null);
+  const [selectedExercise, setSelectedExercise] = useState<{
+    type: ExerciseType;
+    topicId?: string;
+    subTopicId?: string;
+    questionCount?: number;
+  } | null>(null);
 
   // Persistence logic for offline use
   useEffect(() => {
@@ -34,7 +36,11 @@ export default function App() {
       if (savedProgress) {
         try {
           const parsed = JSON.parse(savedProgress);
-          setProgress(parsed);
+          setProgress({
+            completedSubTopics: [],
+            totalPoints: 0,
+            ...parsed
+          });
         } catch (e) {
           console.error("Failed to parse progress", e);
         }
@@ -47,20 +53,20 @@ export default function App() {
     localStorage.setItem('grammarglow_progress', JSON.stringify(newProgress));
   };
 
-  const handleSelectType = (type: ExerciseType) => {
-    setSelectedType(type);
+  const handleStartExercise = (type: ExerciseType, topicId?: string, subTopicId?: string, questionCount?: number) => {
+    setSelectedExercise({ type, topicId, subTopicId, questionCount });
     setState('exercise');
   };
 
-  const handleExerciseComplete = (isLevelUp: boolean) => {
-    const isLadder = selectedType === ExerciseType.GRAMMAR_LADDER;
-    const newProgress = {
-      ...progress,
-      level: (isLadder && isLevelUp) ? progress.level + 1 : progress.level,
-      totalCorrect: progress.totalCorrect + 1, // Optional stats increment
-      lastActive: new Date().toISOString()
-    };
-    saveProgress(newProgress);
+  const handleExerciseComplete = (passed: boolean) => {
+    if (passed && selectedExercise?.subTopicId) {
+      const newProgress = {
+        ...progress,
+        completedSubTopics: Array.from(new Set([...(progress.completedSubTopics || []), selectedExercise.subTopicId])),
+        totalPoints: (progress.totalPoints || 0) + (selectedExercise.type === ExerciseType.GRAMMAR_LADDER ? 100 : 20)
+      };
+      saveProgress(newProgress);
+    }
     setState('dashboard');
   };
 
@@ -86,8 +92,8 @@ export default function App() {
             exit={{ opacity: 0, x: -50 }}
           >
             <Dashboard 
-              onSelectType={handleSelectType} 
-              currentLevel={progress.level} 
+              onStartExercise={handleStartExercise} 
+              progress={progress}
             />
             
             {/* Offline Capability Banner */}
@@ -111,7 +117,7 @@ export default function App() {
           </motion.div>
         )}
 
-        {state === 'exercise' && selectedType && (
+        {state === 'exercise' && selectedExercise && (
           <motion.div
             key="exercise"
             initial={{ opacity: 0, x: 50 }}
@@ -119,8 +125,10 @@ export default function App() {
             exit={{ opacity: 0, scale: 0.9 }}
           >
             <ExerciseView 
-              type={selectedType}
-              level={progress.level}
+              type={selectedExercise.type}
+              topicId={selectedExercise.topicId}
+              subTopicId={selectedExercise.subTopicId}
+              targetQuestionCount={selectedExercise.questionCount}
               onBack={() => setState('dashboard')}
               onComplete={handleExerciseComplete}
             />

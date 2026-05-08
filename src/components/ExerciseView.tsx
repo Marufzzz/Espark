@@ -7,14 +7,14 @@ import { ChevronLeft, Send, Check, X, RefreshCw, Volume2, Award, ArrowRight, Pen
 
 interface ExerciseViewProps {
   type: ExerciseType;
-  level: number;
+  topicId?: string;
+  subTopicId?: string;
+  targetQuestionCount?: number;
   onBack: () => void;
-  onComplete: (isLevelUp: boolean) => void;
+  onComplete: (passed: boolean) => void;
 }
 
-const QUESTIONS_PER_SESSION = 5; 
-
-export const ExerciseView: React.FC<ExerciseViewProps> = ({ type, level, onBack, onComplete }) => {
+export const ExerciseView: React.FC<ExerciseViewProps> = ({ type, topicId, subTopicId, targetQuestionCount, onBack, onComplete }) => {
   const [exercise, setExercise] = useState<Exercise | null>(null);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ isCorrect: boolean; feedback: string; feedbackBn: string } | null>(null);
@@ -22,10 +22,10 @@ export const ExerciseView: React.FC<ExerciseViewProps> = ({ type, level, onBack,
   const [textInput, setTextInput] = useState("");
   const [showVocab, setShowVocab] = useState(false);
   
-  const [session, setSession] = useState<SessionStats>({
+  const [session, setSession] = useState({
     correct: 0,
     total: 0,
-    targetCount: QUESTIONS_PER_SESSION
+    targetCount: targetQuestionCount || 5
   });
   const [showResults, setShowResults] = useState(false);
 
@@ -39,7 +39,7 @@ export const ExerciseView: React.FC<ExerciseViewProps> = ({ type, level, onBack,
     
     try {
       const ai = AIService.getInstance();
-      const nextExercise = await ai.generateExercise(type, level);
+      const nextExercise = await ai.generateExercise(type, topicId, subTopicId);
       setExercise(nextExercise);
     } catch (err) {
       console.error(err);
@@ -50,7 +50,7 @@ export const ExerciseView: React.FC<ExerciseViewProps> = ({ type, level, onBack,
 
   useEffect(() => {
     loadExercise();
-  }, [type, level]);
+  }, [type, topicId, subTopicId]);
 
   const handleSubmit = async (value: string) => {
     if (feedback || !value.trim()) return;
@@ -74,7 +74,7 @@ export const ExerciseView: React.FC<ExerciseViewProps> = ({ type, level, onBack,
   };
 
   const scorePercentage = (session.correct / session.targetCount) * 100;
-  const passedThreshold = scorePercentage >= 60; // 60% for mixed types
+  const passedThreshold = scorePercentage >= 70; // 70% Pass mark
 
   if (showResults) {
     return (
@@ -155,7 +155,7 @@ export const ExerciseView: React.FC<ExerciseViewProps> = ({ type, level, onBack,
           <p className="text-xs text-slate-400">Step {session.total < session.targetCount ? session.total + 1 : session.targetCount} of {session.targetCount}</p>
         </div>
         <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center font-bold text-xs text-slate-600">
-          {level}
+          {session.correct}/{session.targetCount}
         </div>
       </nav>
 
