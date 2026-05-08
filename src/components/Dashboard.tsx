@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { BookOpen, PenTool, Mic, Headphones, GraduationCap, ChevronRight } from 'lucide-react';
+import { BookOpen, PenTool, Mic, Headphones, GraduationCap, ChevronRight, Languages } from 'lucide-react';
 import { ExerciseType } from '../types';
 import { APP_NAME, APP_NAME_BN, GRAMMAR_LADDER_STEPS } from '../constants';
 
@@ -16,8 +16,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectType, currentLevel
   const tools = [
     { id: ExerciseType.READING, label: "Reading", labelBn: "পড়া", icon: BookOpen, color: "bg-blue-500" },
     { id: ExerciseType.WRITING, label: "Writing", labelBn: "লেখা", icon: PenTool, color: "bg-orange-500" },
-    { id: ExerciseType.SPEAKING, label: "Speaking", labelBn: "বলা", icon: Mic, color: "bg-purple-500" },
-    { id: ExerciseType.LISTENING, label: "Listening", labelBn: "শোনা", icon: Headphones, color: "bg-green-500" },
+    { id: ExerciseType.VOCABULARY, label: "Vocabulary", labelBn: "শব্দভাণ্ডার", icon: Languages, color: "bg-indigo-500" },
   ];
 
   return (
